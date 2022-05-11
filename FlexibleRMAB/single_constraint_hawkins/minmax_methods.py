@@ -304,7 +304,7 @@ def action_knapsack(values, C, b):
     m.setObjective((x*values).sum())
 
     # budget constraint
-    m.addConstr(x.dot(C).sum() <= b)
+    m.addConstr(x.dot(C).sum() == b)
 
     # assign one action per arm (including action 0, not acting)
     for i in range(values.shape[0]):
