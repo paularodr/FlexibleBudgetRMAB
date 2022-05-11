@@ -14,7 +14,7 @@ class dropOutState(gym.Env):
     def get_experiment(self,P_noise=False):
 
         C = [0,1,1,2]
-        R = np.array([[0,0,1] for i in range(self.N)])
+        R = np.array([[0,1,1] for i in range(self.N)])
         # one-step transition probabilities
         #not act transition probability. SxS
         P0 = np.array([
@@ -39,7 +39,7 @@ class dropOutState(gym.Env):
             for _ in range(self.N):
                 stop = True
                 while stop:
-                    noise1 = (1-np.random.random_sample(2)/2)
+                    noise1 = (np.random.random_sample(2)/2)
                     noise2 = (np.random.random_sample(2)/2)
                     noise = np.concatenate([noise1,noise2]) #p(1,0,0), p(2,0,1), p(1,1,1), p(2,1,1)
                     # p(2,0,1) > p(2,1,1)

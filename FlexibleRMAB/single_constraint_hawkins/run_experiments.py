@@ -28,10 +28,13 @@ C = [0,1]
 start_state = np.array([2]*N)
 
 # Define K matrix
-K = np.zeros((T,H+1))
-for t in range(T):
-    K[t,t] = 1
-K[:,H] = [-1]*T
+def createK(T,H):
+    K = np.zeros((T,H+1))
+    for t in range(T):
+        K[t,t] = 1
+    K[:,H] = [-1]*T
+    return K
+
 
 # chambolle-pock algorithms
 gamma = 0.95
@@ -80,7 +83,8 @@ for epoch in range(EPOCHS):
         # Hawkins fixed
         algo = 'hawkins_fixed'
         start = time.time()
-        actions = compressing_methods.hawkins_window(T, N, P, R, C, B, envs[algo].current_state, gamma)
+        actions = compressing_methods.hawkins_window(T, N, P, R, C, T*B, envs[algo].current_state, gamma)
+        #actions = compressing_methods.hawkins_window(T, N, P, R, C, T*B, start_state, gamma)
         states, rewards = envs[algo].multiple_steps(T, actions, random_states)
         for i in range(T):
             results = append_results(algo, actions[i], states[i], rewards[i])
@@ -113,11 +117,13 @@ for epoch in range(EPOCHS):
         start = time.time()
         for i in range(T):
             size_close = T - i
+            horizon = H - t - i
             budget = B*T - used
             if budget > 0:
-                x = np.zeros(H+1)
-                y = np.ones(T)
+                x = np.zeros(horizon+1)
+                y = np.ones(size_close)
                 # CHANGE H AND T GIVEN TO CHAMBOLLE POCK
+                K = createK(size_close,horizon)
                 actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, S, R, C, B, budget,  n_iter, tolerance, sample_size)
             else:
                 actions = np.array([0]*N)
@@ -135,5 +141,5 @@ for epoch in range(EPOCHS):
             results[d][k] = np.array(results[d][k])
 
     #save results
-    with open(f'experiments/dropOutState noise/closing_window/epoch_{epoch}.pkl', 'wb') as f:
+    with open(f'experiments/dropOutState/closing_window/epoch_{epoch}.pkl', 'wb') as f:
         pickle.dump(results, f)

@@ -23,8 +23,8 @@ for algo in algos:
     nactions[algo] = pd.DataFrame()
     runtimes[algo] = []
 
-for epoch in range(20):
-    with open(f'experiments/dropOutState/closing_window/epoch_{epoch}.pkl', 'rb') as f:
+for epoch in range(21):
+    with open(f'results/dropOutState/closing_window/test_cluster_seed_{epoch}.pkl', 'rb') as f:
         results = pickle.load(f)
     states = {}
     for algo in algos:
@@ -35,17 +35,11 @@ for epoch in range(20):
         runtimes[algo] = runtimes[algo] + [results[algo]['runtime']]
 
 
-#mean runtimes
-
 # cumulative reward
 reward_means = []
 reward_stds = []
-runtimes_means = []
-runtimes_stds = []
 for algo in algos:
     reward_means.append(rewards[algo].sum(axis=1).mean())
-    reward_stds.append(rewards[algo].sum(axis=1).std())
-    reward_means.append(runtimes[algo].sum(axis=1).mean())
     reward_stds.append(rewards[algo].sum(axis=1).std())
 
 
@@ -56,32 +50,10 @@ plt.bar([x.replace("_","\_") for x in algos],reward_means,yerr=reward_stds,
 edgecolor='black',color=colors
 )
 plt.ylabel('Cumulative reward (20 steps)')
-#ax.xaxis.set_ticks([])
 patches = []
 for i,algo in enumerate(algos):
     patches.append(mpatches.Patch(color=colors[i], label=algo.replace("_","\_")))
-#ax.legend(handles=patches,loc='upper center', bbox_to_anchor=(0.5, -0.05),ncol=4)
 plt.xlabel('')
-plt.show()
-
-# fraction of arms in drop out state 
-for algo in ['hawkins_single','hawkins_fixed','chambolle-pock']:
-    data = fdrop[algo].stack().reset_index().rename(columns={'level_0':'epoch','level_1':'time_horizon',0:'prop'})
-    sns.lineplot(data = data, x = 'time_horizon', y='prop', label=algo)
-plt.legend(loc=4)
-plt.xlabel('Time horizon')
-plt.ylabel('')
-plt.title('Fraction of arms in drop out state (N=5, B=2)')
-plt.show()
-
-# cumulative reward
-for algo in ['hawkins_single','hawkins_fixed','chambolle-pock']:
-    cum = rewards[algo].apply(lambda x: np.cumsum(x),axis=1).apply(lambda x: x/np.array(range(1,51)),axis=1)
-    data = cum.stack().reset_index().rename(columns={'level_0':'epoch','level_1':'time_horizon',0:'reward'})
-    sns.lineplot(data = data, x = 'time_horizon', y='reward', label=algo)
-plt.xlabel('Time horizon')
-plt.ylabel('')
-plt.title('Average cumulative reward')
 plt.show()
 
 # amount of resources used (frequency)
@@ -103,6 +75,30 @@ plt.xlabel('Resources used per round')
 plt.ylabel('Frequency (over 20 steps)')
 plt.tight_layout()
 plt.show()
+
+
+
+# ===========================================
+# fraction of arms in drop out state 
+for algo in ['hawkins_single','hawkins_fixed','chambolle-pock']:
+    data = fdrop[algo].stack().reset_index().rename(columns={'level_0':'epoch','level_1':'time_horizon',0:'prop'})
+    sns.lineplot(data = data, x = 'time_horizon', y='prop', label=algo)
+plt.legend(loc=4)
+plt.xlabel('Time horizon')
+plt.ylabel('')
+plt.title('Fraction of arms in drop out state (N=5, B=2)')
+plt.show()
+
+# cumulative reward
+for algo in ['hawkins_single','hawkins_fixed','chambolle-pock']:
+    cum = rewards[algo].apply(lambda x: np.cumsum(x),axis=1).apply(lambda x: x/np.array(range(1,51)),axis=1)
+    data = cum.stack().reset_index().rename(columns={'level_0':'epoch','level_1':'time_horizon',0:'reward'})
+    sns.lineplot(data = data, x = 'time_horizon', y='reward', label=algo)
+plt.xlabel('Time horizon')
+plt.ylabel('')
+plt.title('Average cumulative reward')
+plt.show()
+
 
 # amount of resources used (at each time step)
 data = pd.DataFrame()
