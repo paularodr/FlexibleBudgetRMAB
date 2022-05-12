@@ -29,7 +29,7 @@ algos = ['hawkins_single','hawkins_fixed','hawkins_closing','chambolle-pock']
 
 seed = args.seed
 T = 2 #flexible time horizon
-H = 20 #total time horizon
+H = 50 #total time horizon
 N = 5 #arms
 S = 3 #states
 B = 1.0 #one step budget
@@ -117,27 +117,27 @@ for t in range(HORIZON):
 
 
     # Minmax Chmbolle-Pock
-    algo = 'chambolle-pock'
-    used = 0
-    start = time.time()
-    for i in range(T):
-        size_close = T - i
-        budget = B*T - used
-        time_horizon = H - t -i
-        K = createK(size_close,time_horizon)
-        if budget > 0:
-            x = np.zeros(time_horizon+1)
-            y = np.ones(size_close)
-            # CHANGE H AND T GIVEN TO CHAMBOLLE POCK
-            actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, S, R, C, B, budget,  n_iter, tolerance, sample_size)
-        else:
-            actions = np.array([0]*N)
-        used += actions.sum()
-        np.random.set_state(random_states[i])
-        current_state, reward = envs[algo].onestep(actions)
-        results = append_results(algo, actions, current_state, reward)
-    runtime = (time.time()-start)
-    results[algo]['runtime'] += runtime
+    # algo = 'chambolle-pock'
+    # used = 0
+    # start = time.time()
+    # for i in range(T):
+    #     size_close = T - i
+    #     budget = B*T - used
+    #     time_horizon = H - t -i
+    #     K = createK(size_close,time_horizon)
+    #     if budget > 0:
+    #         x = np.zeros(time_horizon+1)
+    #         y = np.ones(size_close)
+    #         # CHANGE H AND T GIVEN TO CHAMBOLLE POCK
+    #         actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, S, R, C, B, budget,  n_iter, tolerance, sample_size)
+    #     else:
+    #         actions = np.array([0]*N)
+    #     used += actions.sum()
+    #     np.random.set_state(random_states[i])
+    #     current_state, reward = envs[algo].onestep(actions)
+    #     results = append_results(algo, actions, current_state, reward)
+    # runtime = (time.time()-start)
+    # results[algo]['runtime'] += runtime
 
 
 # results from list to numpy array
