@@ -8,6 +8,7 @@ import minmax_methods as minmax
 from environments import dropOutState
 from tqdm import tqdm 
 import argparse
+import os
 
 parser = argparse.ArgumentParser(description='Experiments')
 parser.add_argument('seed', metavar='seed', type=int,
@@ -146,5 +147,8 @@ for k in ['actions','states','rewards']:
         results[d][k] = np.array(results[d][k])
 
 #save results
-with open(f'experiments/dropOutState noise/closing_window/test_cluster_seed_{seed}.pkl', 'wb') as f:
+experiment = f'T_{T}_H_{H}_N_{N}_B_{int(B)}'
+dir_path = f'experiments/dropOutState/closing_window/{experiment}'
+os.mkdir(dir_path)
+with open(f'{dir_path}/{experiment}_seed_{seed}.pkl', 'wb') as f:
     pickle.dump(results, f)
