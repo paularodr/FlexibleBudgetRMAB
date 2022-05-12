@@ -89,7 +89,7 @@ for t in range(HORIZON):
     # Hawkins fixed
     algo = 'hawkins_fixed'
     start = time.time()
-    actions = compressing_methods.hawkins_window(T, N, P, R, C, B, envs[algo].current_state, gamma)
+    actions = compressing_methods.hawkins_window(T, N, P, R, C, T*B, envs[algo].current_state, gamma)
     states, rewards = envs[algo].multiple_steps(T, actions, random_states)
     for i in range(T):
         results = append_results(algo, actions[i], states[i], rewards[i])
