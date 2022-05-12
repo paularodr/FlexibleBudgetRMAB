@@ -1,3 +1,4 @@
+from curses import window
 import pickle
 import time
 import numpy as np
@@ -36,10 +37,12 @@ C = [0,1]
 start_state = np.array([2]*N)
 
 # Define K matrix
-K = np.zeros((T,H+1))
-for t in range(T):
-    K[t,t] = 1
-K[:,H] = [-1]*T
+def createK(T,H):
+    K = np.zeros((T,H+1))
+    for t in range(T):
+        K[t,t] = 1
+    K[:,H] = [-1]*T
+    return K
 
 # chambolle-pock algorithms
 gamma = 0.95
@@ -120,9 +123,11 @@ for t in range(HORIZON):
     for i in range(T):
         size_close = T - i
         budget = B*T - used
+        time_horizon = H - t -i
+        K = createK(size_close,time_horizon)
         if budget > 0:
-            x = np.zeros(H+1)
-            y = np.ones(T)
+            x = np.zeros(time_horizon+1)
+            y = np.ones(size_close)
             # CHANGE H AND T GIVEN TO CHAMBOLLE POCK
             actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, S, R, C, B, budget,  n_iter, tolerance, sample_size)
         else:
