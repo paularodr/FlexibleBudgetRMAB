@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -n 4        # number of cores
+#SBATCH -n 24        # number of cores
 #SBATCH -N 1         # ensure all cores are on one machine
 #SBATCH -t 00-02:00  # runtime in D-HH:MM, minimum of 10 minutes
 #SBATCH -p tambe,shared   # partition to submit to

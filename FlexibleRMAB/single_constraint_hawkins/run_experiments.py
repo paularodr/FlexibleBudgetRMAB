@@ -1,4 +1,3 @@
-from curses import window
 import pickle
 import time
 import numpy as np
@@ -149,6 +148,5 @@ for k in ['actions','states','rewards']:
 #save results
 experiment = f'T_{T}_H_{H}_N_{N}_B_{int(B)}'
 dir_path = f'experiments/dropOutState/closing_window/{experiment}'
-os.mkdir(dir_path)
 with open(f'{dir_path}/{experiment}_seed_{seed}.pkl', 'wb') as f:
     pickle.dump(results, f)
