@@ -1,3 +1,3 @@
 code single_run#!/bin/bash
 
-sbatch --array=0-19 single_run.sh
+sbatch --array=0-0 single_run.sh

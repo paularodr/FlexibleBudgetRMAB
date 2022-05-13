@@ -39,9 +39,9 @@ class dropOutState(gym.Env):
             for _ in range(self.N):
                 stop = True
                 while stop:
-                    #noise1 = np.random.randint(25,50,2)/100
-                    noise1 = np.array([0.4,0.4])
-                    #noise2 = np.random.randint(15,40,2)/100
+                    noise1 = [np.random.randint(75,90)/100,np.random.randint(15,30)/100]
+                    #noise1 = np.array([0.8,0.2])
+                    noise2 = np.random.randint(15,40,2)/100
                     noise2 = np.zeros(2)
                     noise = np.concatenate([noise1,noise2]) #p(1,0,0), p(2,0,1), p(1,1,1), p(2,1,1)
                     # p(2,0,1) > p(2,1,1)
