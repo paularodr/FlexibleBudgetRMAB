@@ -16,7 +16,9 @@ def compress(P, C, size):
         P_i = np.swapaxes(P_i, 0, 1)
         Psize_i = []
         for a in multi_actions:
-            x = np.matmul(P_i[a[0]],P_i[a[1]])
+            x = P_i[a[0]]
+            for d in range(1,size):
+                x = np.matmul(x,P_i[a[d]])
             Psize_i.append(x)
         Psize_i = np.swapaxes(Psize_i, 0, 1)
         Psize.append(Psize_i)
