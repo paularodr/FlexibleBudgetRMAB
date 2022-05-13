@@ -24,11 +24,6 @@ def get_hawkins_actions(N, T, R, C, B, current_state, gamma):
         s = current_state[i]
         Q_vals_per_state[i] = Q_vals[i,:,s]
 
-    # if tie, favor acting
-    tie = (Q_vals_per_state[:,0]==Q_vals_per_state[:,1])
-    if np.any(tie):
-        Q_vals_per_state[tie,1] += 0.01
-
     decision_matrix = hawkins_methods.action_knapsack(Q_vals_per_state, C, B)
 
     actions = np.argmax(decision_matrix, axis=1)
