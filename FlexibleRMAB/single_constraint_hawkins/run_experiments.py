@@ -7,7 +7,7 @@ import minmax_methods as minmax
 from environments import dropOutState
 from tqdm import tqdm 
 import argparse
-import os
+import tracemalloc
 
 parser = argparse.ArgumentParser(description='Experiments')
 parser.add_argument('seed', metavar='seed', type=int,
@@ -61,7 +61,7 @@ envs = {}
 np.random.seed(seed)
 state = np.random.get_state()
 for algo in algos:
-    results[algo] = {'actions':[],'states':[],'rewards':[], 'runtime':0}
+    results[algo] = {'actions':[],'states':[],'rewards':[], 'runtime':0, 'memory':0}
     np.random.set_state(state)
     envs[algo] = dropOutState(N, B, start_state,P_noise=True)
 
@@ -73,6 +73,7 @@ for t in range(HORIZON):
     P = envs[algo].T_one
     R = envs[algo].R
     start = time.time()
+    tracemalloc.start()
     for k in range(T):
             output = hawkins_actions.get_hawkins_actions(N, P, R, C, B, envs[algo].current_state, gamma)
             #output = get_hawkins_actions(N, P, R, C, B, start_state, gamma)
@@ -85,22 +86,28 @@ for t in range(HORIZON):
             results = append_results(algo, actions, current_state, reward)
     runtime = (time.time()-start)
     results[algo]['runtime'] += runtime
+    results[algo]['memory'] += tracemalloc.get_traced_memory()[1]
+    tracemalloc.stop()
 
     # Hawkins fixed
     algo = 'hawkins_fixed'
     start = time.time()
+    tracemalloc.start()
     actions = compressing_methods.hawkins_window(T, N, P, R, C, T*B, envs[algo].current_state, gamma)
     states, rewards = envs[algo].multiple_steps(T, actions, random_states)
     for i in range(T):
         results = append_results(algo, actions[i], states[i], rewards[i])
     runtime = (time.time()-start)
     results[algo]['runtime'] += runtime
+    results[algo]['memory'] += tracemalloc.get_traced_memory()[1]
+    tracemalloc.stop()
 
 
     # Hawkins closing
     algo = 'hawkins_closing'
     used = 0
     start = time.time()
+    tracemalloc.start()
     for i in range(T):
         size_close = T - i
         budget = B*T - used # if resources not shared in future budget = B*size_close
@@ -114,12 +121,15 @@ for t in range(HORIZON):
         results = append_results(algo, actions[0], current_state, reward)
     runtime = (time.time()-start)
     results[algo]['runtime'] += runtime
+    results[algo]['memory'] += tracemalloc.get_traced_memory()[1]
+    tracemalloc.stop()
 
 
     #Minmax Chmbolle-Pock
     algo = 'chambolle-pock'
     used = 0
     start = time.time()
+    tracemalloc.start()
     for i in range(T):
         size_close = T - i
         budget = B*T - used
@@ -138,6 +148,8 @@ for t in range(HORIZON):
         results = append_results(algo, actions, current_state, reward)
     runtime = (time.time()-start)
     results[algo]['runtime'] += runtime
+    results[algo]['memory'] += tracemalloc.get_traced_memory()[1]
+    tracemalloc.stop()
 
 
 # results from list to numpy array
