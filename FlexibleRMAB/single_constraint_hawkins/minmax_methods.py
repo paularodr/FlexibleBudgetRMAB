@@ -4,6 +4,7 @@ import evaluation as evaluation
 from gurobipy import *
 from tqdm import tqdm
 from pathos.pools import ProcessPool
+from numba import njit, prange, jit
 
 def L_fixed_lambda(P, R, C, H, lamtime, start_state, gamma=0.95):
     NPROCS = P.shape[0]
@@ -94,6 +95,27 @@ def cost_one_sample(start_state, lamtime, H, P, S, R, C, gamma=0.95):
         # take actions and transition
         current_state = evaluation.nextState(actions, current_state, S, P)
     return cost_time
+
+@jit
+def sample_expected_cost_jit(sample_size, start_state, lamtime, H, P, S, R, C, gamma=0.95):
+    costs = []
+    for _ in range(sample_size):
+        cost_time = []
+        current_state = start_state
+        Q_vals = get_Q_vals(H, P, R, C, lamtime, start_state, gamma)
+
+        for t in range(H):
+            actions = get_Q_actions(Q_vals, t, current_state)
+            total_cost = np.sum([C[int(i)] for i in actions])
+            cost_time.append(total_cost)
+
+            # take actions and transition
+            current_state = evaluation.nextState(actions, current_state, S, P)
+        costs.append(cost_time)
+    
+    costs = np.array(costs)
+    costs = np.mean(costs,axis=0)
+    return costs
 
 def sample_expected_cost(sample_size, start_state, lamtime, H, P, S, R, C, gamma=0.95):
     costs = []
