@@ -4,7 +4,7 @@ import evaluation as evaluation
 from gurobipy import *
 from tqdm import tqdm
 from pathos.pools import ProcessPool
-from numba import njit, prange, jit
+#from numba import njit, prange, jit
 
 def L_fixed_lambda(P, R, C, H, lamtime, start_state, gamma=0.95):
     NPROCS = P.shape[0]
@@ -82,7 +82,7 @@ def get_Q_actions(Q_vals, timestep, current_state):
 
     return actions
 
-def cost_one_sample(start_state, lamtime, H, P, S, R, C, gamma=0.95):
+def cost_one_sample(start_state, lamtime, H, P, R, C, gamma=0.95):
     cost_time = []
     current_state = start_state
     Q_vals = get_Q_vals(H, P, R, C, lamtime, start_state, gamma)
@@ -93,41 +93,41 @@ def cost_one_sample(start_state, lamtime, H, P, S, R, C, gamma=0.95):
         cost_time.append(total_cost)
 
         # take actions and transition
-        current_state = evaluation.nextState(actions, current_state, S, P)
+        current_state = evaluation.nextState(actions, current_state, P)
     return cost_time
 
-@jit
-def sample_expected_cost_jit(sample_size, start_state, lamtime, H, P, S, R, C, gamma=0.95):
+# @jit
+# def sample_expected_cost_jit(sample_size, start_state, lamtime, H, P, S, R, C, gamma=0.95):
+#     costs = []
+#     for _ in range(sample_size):
+#         cost_time = []
+#         current_state = start_state
+#         Q_vals = get_Q_vals(H, P, R, C, lamtime, start_state, gamma)
+
+#         for t in range(H):
+#             actions = get_Q_actions(Q_vals, t, current_state)
+#             total_cost = np.sum([C[int(i)] for i in actions])
+#             cost_time.append(total_cost)
+
+#             # take actions and transition
+#             current_state = evaluation.nextState(actions, current_state, S, P)
+#         costs.append(cost_time)
+    
+#     costs = np.array(costs)
+#     costs = np.mean(costs,axis=0)
+#     return costs
+
+def sample_expected_cost(sample_size, start_state, lamtime, H, P, R, C, gamma=0.95):
     costs = []
     for _ in range(sample_size):
-        cost_time = []
-        current_state = start_state
-        Q_vals = get_Q_vals(H, P, R, C, lamtime, start_state, gamma)
-
-        for t in range(H):
-            actions = get_Q_actions(Q_vals, t, current_state)
-            total_cost = np.sum([C[int(i)] for i in actions])
-            cost_time.append(total_cost)
-
-            # take actions and transition
-            current_state = evaluation.nextState(actions, current_state, S, P)
+        cost_time = cost_one_sample(start_state, lamtime, H, P, R, C, gamma)
         costs.append(cost_time)
     
     costs = np.array(costs)
     costs = np.mean(costs,axis=0)
     return costs
 
-def sample_expected_cost(sample_size, start_state, lamtime, H, P, S, R, C, gamma=0.95):
-    costs = []
-    for _ in range(sample_size):
-        cost_time = cost_one_sample(start_state, lamtime, H, P, S, R, C, gamma)
-        costs.append(cost_time)
-    
-    costs = np.array(costs)
-    costs = np.mean(costs,axis=0)
-    return costs
-
-def sample_expected_cost_parall(sample_size, start_state, lamtime, H, P, S, R, C, gamma=0.95):
+def sample_expected_cost_parall(sample_size, start_state, lamtime, H, P, R, C, gamma=0.95):
     pool = ProcessPool()
     results = pool.map(
         cost_one_sample,
@@ -135,7 +135,6 @@ def sample_expected_cost_parall(sample_size, start_state, lamtime, H, P, S, R, C
         [lamtime for _ in range(sample_size)],
         [H for _ in range(sample_size)],
         [P for _ in range(sample_size)],
-        [S for _ in range(sample_size)],
         [R for _ in range(sample_size)],
         [C for _ in range(sample_size)],
         [gamma for _ in range(sample_size)]
@@ -256,7 +255,7 @@ def LP_fixed_lagrange(H, T, P, R, C, B, lagrange_vals, start_state, gamma=0.95):
 
     return b_vals, obj.getValue()
 
-def chambolle_pock(tau, sigma, K, x, y, start_state, P, S, R, C, B, Bavai,  n_iter=50, tolerance=1e-06, sample_size=100,gamma=0.95):
+def chambolle_pock(tau, sigma, K, x, y, start_state, P, R, C, B, Bavai,  n_iter=50, tolerance=1e-06, sample_size=100,gamma=0.95):
 # min_x max_y (x: lagrange multipliers, y: budget variables)
 # x0: list with initial values for variabels to minimize over
 # y0: list with initial values for variabels to maximize over
@@ -281,7 +280,7 @@ def chambolle_pock(tau, sigma, K, x, y, start_state, P, S, R, C, B, Bavai,  n_it
         lambda_vals = x_grad[:-1]
 
         #sample gradients evaluated in x_grad
-        expected_cost = sample_expected_cost_parall(sample_size, start_state, lambda_vals, H, P, S, R, C, gamma)
+        expected_cost = sample_expected_cost_parall(sample_size, start_state, lambda_vals, H, P, R, C, gamma)
         gradients = -1 * expected_cost
         if T<H:
             gradients[T+1:] += B
@@ -347,8 +346,8 @@ def action_knapsack(values, C, b):
     
     return x_out
 
-def chambolle_pock_actions(tau, sigma, K, x, y, current_state, P, S, R, C, B, Bavai,  n_iter, tolerance, sample_size):
-    (l,l_diff),(b,b_diff) = chambolle_pock(tau, sigma, K, x, y, current_state, P, S, R, C, B, Bavai, n_iter, tolerance, sample_size)
+def chambolle_pock_actions(tau, sigma, K, x, y, current_state, P, R, C, B, Bavai,  n_iter, tolerance, sample_size):
+    (l,l_diff),(b,b_diff) = chambolle_pock(tau, sigma, K, x, y, current_state, P, R, C, B, Bavai, n_iter, tolerance, sample_size)
     lamtime = l[:-1]
     T = K.shape[0]
     H = K.shape[1] - 1
@@ -372,3 +371,11 @@ def chambolle_pock_actions(tau, sigma, K, x, y, current_state, P, S, R, C, B, Ba
     actions = np.argmax(actions_var,axis=1)
     
     return actions, l, budgets, Q_vals
+
+# Define K matrix
+def createK(T,H):
+    K = np.zeros((T,H+1))
+    for t in range(T):
+        K[t,t] = 1
+    K[:,H] = [-1]*T
+    return K

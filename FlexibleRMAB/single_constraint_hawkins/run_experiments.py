@@ -4,7 +4,7 @@ import numpy as np
 import hawkins_actions
 import compressing_methods
 import minmax_methods as minmax
-from environments import dropOutState
+from environments import dropOutState, riskProneArms
 from tqdm import tqdm 
 import argparse
 import tracemalloc
@@ -14,6 +14,8 @@ parser.add_argument('seed', metavar='seed', type=int,
                     help='Set random seed')
 
 args = parser.parse_args()
+
+domain = 'riskProneArms' #dropOutState, riskProneArms
 
 def append_results(algo, actions, state, reward):
     actions = list(actions)
@@ -28,21 +30,13 @@ algos = ['hawkins_single','hawkins_fixed','hawkins_closing','chambolle-pock']
 # Parameters
 
 seed = args.seed
-T = 10 #flexible time horizon
-H = 30 #total time horizon
-N = 10 #arms
+T = 2 #flexible time horizon
+H = 20 #total time horizon
+N = 20 #arms
+M = 0.5 #fraction of risk prone arms
 S = 3 #states
 B = 1.0 #one step budget
 C = [0,1]
-start_state = np.array([2]*N)
-
-# Define K matrix
-def createK(T,H):
-    K = np.zeros((T,H+1))
-    for t in range(T):
-        K[t,t] = 1
-    K[:,H] = [-1]*T
-    return K
 
 # chambolle-pock algorithms
 gamma = 0.95
@@ -63,22 +57,22 @@ state = np.random.get_state()
 for algo in algos:
     results[algo] = {'actions':[],'states':[],'rewards':[], 'runtime':0, 'memory':0}
     np.random.set_state(state)
-    envs[algo] = dropOutState(N, B, start_state,P_noise=True)
+    if domain == 'dropOutState':
+        envs[algo] = dropOutState(N, B,P_noise=True)
+    if domain == 'riskProneArms':
+        envs[algo] = riskProneArms(N,B,M)
 
 for t in range(HORIZON):
     print(f'timestep: {t}/{HORIZON}')
     # Hawkins single
     algo = 'hawkins_single'
     random_states = []
-    P = envs[algo].T_one
+    P = envs[algo].T
     R = envs[algo].R
     start = time.time()
     tracemalloc.start()
     for k in range(T):
             output = hawkins_actions.get_hawkins_actions(N, P, R, C, B, envs[algo].current_state, gamma)
-            #output = get_hawkins_actions(N, P, R, C, B, start_state, gamma)
-            # output[0]
-            # output = (actions, L_vals, Q_vals, lambda_val, Q_vals_per_state)
             actions = output[0]
             random_states.append(np.random.get_state())
             np.random.set_state(random_states[k])
@@ -128,18 +122,16 @@ for t in range(HORIZON):
     #Minmax Chmbolle-Pock
     algo = 'chambolle-pock'
     used = 0
-    start = time.time()
-    tracemalloc.start()
     for i in range(T):
         size_close = T - i
         budget = B*T - used
         time_horizon = H - t -i
-        K = createK(size_close,time_horizon)
+        K = minmax.createK(size_close,time_horizon)
         if budget > 0:
             x = np.zeros(time_horizon+1)
             y = np.ones(size_close)
             # CHANGE H AND T GIVEN TO CHAMBOLLE POCK
-            actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, S, R, C, B, budget,  n_iter, tolerance, sample_size)
+            actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, R, C, B, budget,  n_iter, tolerance, sample_size)
         else:
             actions = np.array([0]*N)
         used += actions.sum()
@@ -148,8 +140,6 @@ for t in range(HORIZON):
         results = append_results(algo, actions, current_state, reward)
     runtime = (time.time()-start)
     results[algo]['runtime'] += runtime
-    results[algo]['memory'] += tracemalloc.get_traced_memory()[1]
-    tracemalloc.stop()
 
 
 # results from list to numpy array
@@ -162,3 +152,11 @@ experiment = f'T_{T}_H_{H}_N_{N}_B_{int(B)}'
 dir_path = f'experiments/dropOutState/closing_window/{experiment}'
 with open(f'{dir_path}/{experiment}_seed_{seed}.pkl', 'wb') as f:
     pickle.dump(results, f)
+
+for algo in algos:
+    x = results[algo]['rewards'].sum()
+    print(f'{algo} reward: {x}')
+
+algo = 'chambolle-pock'
+results[algo]['actions']
+results[algo]['states']

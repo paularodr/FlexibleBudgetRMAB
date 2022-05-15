@@ -1,7 +1,8 @@
 import numpy as np
 import random
 
-def nextState(actions, state, S, T):
+def nextState(actions, state, T):
+    S = T.shape[1]
 
     # perform action on each arm and update state
     newState = state.copy()
