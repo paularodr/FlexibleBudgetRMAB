@@ -2,6 +2,72 @@ import numpy as np
 import gym
 import evaluation
 
+class birthDeathProcess(gym.Env):
+    def __init__(self, N, B, S, reward_ones=False):
+        
+        self.N = N
+        self.B = B
+        self.S = S
+        self.current_state = np.array([S-1]*N)
+        self.reward_ones = reward_ones
+        self.T, self.R, self.C = self.get_experiment()
+    
+    def get_experiment(self):
+
+        C = [0,1]
+        if self.reward_ones:
+            neg = [-1 for _ in range(int(self.S/2))]
+            pos = [1 for _ in range(int(self.S/2))]
+        else:
+            neg = [-1*(self.S/2)+x for x in range(int(self.S/2))]
+            pos = [x+1 for x in range(int(self.S/2))]
+
+        if (self.S % 2) == 0:
+            R = np.array([neg+pos for _ in range(self.N)])
+        else:
+            R = np.array([neg+[0]+pos for _ in range(self.N)])
+        P = np.zeros((self.N,self.S,2,self.S))
+
+        for i in range(self.N):
+            for s in range(self.S):
+                probs = np.random.random(2)
+
+                if s != self.S - 1:
+                    P[i,s,0,s+1] = np.min(probs)
+                    P[i,s,1,s+1] = np.max(probs)
+                else:
+                    P[i,s,0,s] = np.min(probs)
+                    P[i,s,1,s] = np.max(probs)
+
+                if s != 0:
+                    P[i,s,0,s-1] = 1 - np.min(probs)
+                    P[i,s,1,s-1] = 1 - np.max(probs)
+                else:
+                    P[i,s,0,s] = 1 - P[i,s,0,s+1]
+                    P[i,s,1,s] = 1 - P[i,s,1,s+1]
+
+        return P, R, C
+
+    def onestep(self, actions):
+        current_state = evaluation.nextState(actions,self.current_state, self.T)
+        self.current_state = current_state
+        reward = evaluation.getReward(current_state, self.R)
+
+        return current_state, reward
+
+    def multiple_steps(self, size, actions, random_states):
+        rewards = []
+        states = []
+        for i in range(size):
+            np.random.set_state(random_states[i])
+            new_state = evaluation.nextState(actions[i],self.current_state, self.T)
+            reward = evaluation.getReward(new_state, self.R)
+            states.append(new_state)
+            rewards.append(reward)
+            self.current_state = new_state  
+
+        return states, rewards
+
 class riskProneArms(gym.Env):
     def __init__(self, N, B, M):
         

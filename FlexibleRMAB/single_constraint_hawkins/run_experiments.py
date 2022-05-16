@@ -4,7 +4,7 @@ import numpy as np
 import hawkins_actions
 import compressing_methods
 import minmax_methods as minmax
-from environments import dropOutState, riskProneArms
+from environments import dropOutState, riskProneArms, birthDeathProcess
 from tqdm import tqdm 
 import argparse
 import tracemalloc
@@ -15,7 +15,7 @@ parser.add_argument('seed', metavar='seed', type=int,
 
 args = parser.parse_args()
 
-domain = 'riskProneArms' #dropOutState, riskProneArms
+domain = 'birthDeathProcess' #dropOutState, riskProneArms, birthDeathProcess
 
 def append_results(algo, actions, state, reward):
     actions = list(actions)
@@ -34,7 +34,7 @@ T = 2 #flexible time horizon
 H = 20 #total time horizon
 N = 20 #arms
 M = 0.5 #fraction of risk prone arms
-S = 3 #states
+S = 7 #states
 B = 1.0 #one step budget
 C = [0,1]
 
@@ -61,6 +61,9 @@ for algo in algos:
         envs[algo] = dropOutState(N, B,P_noise=True)
     if domain == 'riskProneArms':
         envs[algo] = riskProneArms(N,B,M)
+    if domain == 'birthDeathProcess':
+        envs[algo] = birthDeathProcess(N,B,S)
+
 
 for t in range(HORIZON):
     print(f'timestep: {t}/{HORIZON}')
@@ -157,6 +160,6 @@ for algo in algos:
     x = results[algo]['rewards'].sum()
     print(f'{algo} reward: {x}')
 
-algo = 'chambolle-pock'
+algo = 'hawkins_single'
 results[algo]['actions']
 results[algo]['states']
