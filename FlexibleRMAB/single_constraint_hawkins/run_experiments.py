@@ -152,14 +152,6 @@ for k in ['actions','states','rewards']:
 
 #save results
 experiment = f'T_{T}_H_{H}_N_{N}_B_{int(B)}'
-dir_path = f'experiments/dropOutState/closing_window/{experiment}'
+dir_path = f'experiments/{domain}/{experiment}'
 with open(f'{dir_path}/{experiment}_seed_{seed}.pkl', 'wb') as f:
     pickle.dump(results, f)
-
-for algo in algos:
-    x = results[algo]['rewards'].sum()
-    print(f'{algo} reward: {x}')
-
-algo = 'hawkins_single'
-results[algo]['actions']
-results[algo]['states']
