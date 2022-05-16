@@ -32,26 +32,15 @@ class birthDeathProcess(gym.Env):
             for s in range(self.S):
                 probs = np.random.random(2)
 
-                if s != self.S - 1:
-                    # P[i,s,0,s+1] = np.min(probs)
-                    # P[i,s,1,s+1] = np.max(probs)
-                    P[i,s,0,s] = np.min(probs)
-                    P[i,s,1,self.S - 1] = np.max(probs)
-                else:
-                    P[i,s,0,s] = np.min(probs)
-                    P[i,s,1,s] = 1
+                if s != 0:
+                    P[i,s,1,self.S - 1] = 1
 
                 if s != 0:
-                    P[i,s,0,s-1] = 1 - np.min(probs)
-                    #P[i,s,1,s-1] = 1 - np.max(probs)
-                    if s != self.S - 1:
-                        P[i,s,1,s] = 1 - np.max(probs)
+                    P[i,s,0,s-1] = 0.45
+                    P[i,s,0,s] = 1-0.45
                 else:
-                    # P[i,s,0,s] = 1 - P[i,s,0,s+1]
-                    # P[i,s,1,s] = 1 - P[i,s,1,s+1]
                     P[i,s,0,s] = 1
-                    P[i,s,1,s] = 1 - P[i,s,1,self.S - 1]
-
+                    P[i,s,1,s] = 1
 
         return P, R, C
 
