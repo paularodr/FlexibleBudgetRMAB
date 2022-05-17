@@ -367,7 +367,7 @@ def chambolle_pock_actions(tau, sigma, K, x, y, current_state, P, R, C, B, Bavai
     if T<H:
         budgets = np.array(list(budgets) + [B]*(H-T))
 
-    step_budget = np.max([B*T,budgets[0]])
+    step_budget = np.min([Bavai,budgets[0]])
     actions_var = action_knapsack(Q_vals_state, C, step_budget)
     actions = np.argmax(actions_var,axis=1)
     
