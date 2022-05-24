@@ -83,7 +83,7 @@ for t in range(HORIZON):
     start = time.time()
     tracemalloc.start()
     for k in range(T):
-            output = hawkins_actions.get_hawkins_actions(H-t-k, N, P, R, C, B, envs[algo].current_state, gamma)
+            output = hawkins_actions.get_hawkins_actions(H-t*T-k, N, P, R, C, B, envs[algo].current_state, gamma)
             actions = output[0]
             random_states.append(np.random.get_state())
             np.random.set_state(random_states[k])
@@ -98,7 +98,7 @@ for t in range(HORIZON):
     algo = 'hawkins_fixed'
     start = time.time()
     tracemalloc.start()
-    actions = compressing_methods.hawkins_window(T, N, P, R, C, T*B, envs[algo].current_state, gamma)
+    actions = compressing_methods.hawkins_window(HORIZON-t, T, N, P, R, C, T*B, envs[algo].current_state, gamma)
     states, rewards = envs[algo].multiple_steps(T, actions, random_states)
     for i in range(T):
         results = append_results(algo, actions[i], states[i], rewards[i])
@@ -115,9 +115,10 @@ for t in range(HORIZON):
     tracemalloc.start()
     for i in range(T):
         size_close = T - i
+        horizon_left = np.floor((H-t*T-i)/size_close)
         budget = B*T - used # if resources not shared in future budget = B*size_close
         if budget > 0:
-            actions = compressing_methods.hawkins_window(size_close, N, P, R, C, budget, envs[algo].current_state, gamma)
+            actions = compressing_methods.hawkins_window(horizon_left,size_close, N, P, R, C, budget, envs[algo].current_state, gamma)
         else:
             actions = [np.array([0]*N)]
         used += actions[0].sum()
