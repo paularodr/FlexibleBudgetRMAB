@@ -36,8 +36,8 @@ class birthDeathProcess(gym.Env):
                     P[i,s,1,self.S - 1] = 1
 
                 if s != 0:
-                    P[i,s,0,s-1] = 0.45
-                    P[i,s,0,s] = 1-0.45
+                    P[i,s,0,s-1] = 0.6
+                    P[i,s,0,s] = 0.4
                 else:
                     P[i,s,0,s] = 1
                     P[i,s,1,s] = 1

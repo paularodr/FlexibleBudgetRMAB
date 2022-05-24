@@ -5,7 +5,6 @@ import hawkins_actions
 import compressing_methods
 import minmax_methods as minmax
 from environments import dropOutState, riskProneArms, birthDeathProcess
-from tqdm import tqdm 
 import argparse
 import tracemalloc
 
@@ -42,13 +41,13 @@ domain = args.domain
 T = args.T #flexible time horizon
 H = args.H #total time horizon
 N = args.N #arms
-M = 0.5 #fraction of risk prone arms
+M = 1 #fraction of risk prone arms
 S = args.S #states
 B = 1.0 #one step budget
 C = [0,1]
 
 # chambolle-pock algorithms
-gamma = 0.95
+gamma = 1
 tau = 0.1
 sigma = 0.1
 x = np.zeros(H+1) # initial lagrange multipliers
@@ -84,7 +83,7 @@ for t in range(HORIZON):
     start = time.time()
     tracemalloc.start()
     for k in range(T):
-            output = hawkins_actions.get_hawkins_actions(N, P, R, C, B, envs[algo].current_state, gamma)
+            output = hawkins_actions.get_hawkins_actions(H-t-k, N, P, R, C, B, envs[algo].current_state, gamma)
             actions = output[0]
             random_states.append(np.random.get_state())
             np.random.set_state(random_states[k])
@@ -130,29 +129,6 @@ for t in range(HORIZON):
     results[algo]['memory'] += tracemalloc.get_traced_memory()[1]
     tracemalloc.stop()
 
-
-    #Minmax Chmbolle-Pock
-    algo = 'chambolle-pock-10'
-    used = 0
-    for i in range(T):
-        size_close = T - i
-        budget = B*T - used
-        time_horizon = H - t -i
-        K = minmax.createK(size_close,time_horizon)
-        if budget > 0:
-            x = np.zeros(time_horizon+1)
-            y = np.ones(size_close)
-            # CHANGE H AND T GIVEN TO CHAMBOLLE POCK
-            actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, R, C, B, budget,  10, tolerance, sample_size)
-        else:
-            actions = np.array([0]*N)
-        used += actions.sum()
-        np.random.set_state(random_states[i])
-        current_state, reward = envs[algo].onestep(actions)
-        results = append_results(algo, actions, current_state, reward)
-    runtime = (time.time()-start)
-    results[algo]['runtime'] += runtime
-
     #Minmax Chmbolle-Pock
     algo = 'chambolle-pock-50'
     used = 0
@@ -186,7 +162,6 @@ for t in range(HORIZON):
         if budget > 0:
             x = np.zeros(time_horizon+1)
             y = np.ones(size_close)
-            # CHANGE H AND T GIVEN TO CHAMBOLLE POCK
             actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, R, C, B, budget,  100, tolerance, sample_size)
         else:
             actions = np.array([0]*N)
@@ -208,7 +183,6 @@ for t in range(HORIZON):
         if budget > 0:
             x = np.zeros(time_horizon+1)
             y = np.ones(size_close)
-            # CHANGE H AND T GIVEN TO CHAMBOLLE POCK
             actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, R, C, B, budget,  200, tolerance, sample_size)
         else:
             actions = np.array([0]*N)
@@ -224,6 +198,10 @@ for t in range(HORIZON):
 for k in ['actions','states','rewards']:
     for d in algos:
         results[d][k] = np.array(results[d][k])
+
+for algo in algos:
+    x=results[algo]['rewards'].sum()
+    print(f'{algo}: {x}')
 
 #save results
 experiment = f'T_{T}_H_{H}_N_{N}_S_{S}_B_{int(B)}'

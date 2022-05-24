@@ -63,9 +63,6 @@ def hawkins(T, R, C, B, start_state, lambda_lim=None, gamma=0.95):
 		for s in range(NSTATES):
 			for j in range(NACTIONS):
 				m.addConstr( L[n,s] >= R[n,s] - lam*c[j] + gamma*L[n].dot(T[n,s,j]) )
-				# m.addConstr( L[p][i] >= R[p][i] - lam*c[j] + gamma*L[p].dot(T[p,i,j]) )
-				# m.addConstr( L[p,i] >= R[p,i] - lam*c[j] + gamma*T[p,i,j].dot(L[p]))
-
 
 
 	# print('Constraints added in %ss:'%(time.time() - start))
@@ -97,6 +94,66 @@ def hawkins(T, R, C, B, start_state, lambda_lim=None, gamma=0.95):
 	start = time.time()
 
 	return L_vals, lam_solved_value
+
+def hawkins_finite(H, P, R, C, B, start_state, lambda_lim=None, gamma=1):
+
+	NPROCS = P.shape[0]
+	NSTATES = P.shape[1]
+	NACTIONS = P.shape[2]
+
+	# Create a new model
+	m = Model("LP for Hawkins Lagrangian relaxation with finite horizon")
+	m.setParam('OutputFlag', False )
+
+	L = np.zeros((NPROCS,NSTATES, H+1),dtype=object)
+	
+	mu = np.zeros((NPROCS,NSTATES),dtype=object)
+	for i in range(NPROCS):
+		mu[i, int(start_state[i])] = 1
+
+	# Create variables
+	lb = 0
+	ub = GRB.INFINITY
+	if lambda_lim is not None:
+		ub = lambda_lim
+
+	lam = m.addVar(vtype=GRB.CONTINUOUS, lb=lb, ub=ub, name='lambda')
+
+	for p in range(NPROCS):
+		for i in range(NSTATES):
+			for h in range(H):
+				L[p,i,h] = m.addVar(vtype=GRB.CONTINUOUS, name='L_%s_%s_%s'%(p,i,h))
+
+	# objective
+	m.modelSense=GRB.MINIMIZE
+	m.setObjective(sum([L[i,:,0].dot(mu[i]) for i in range(NPROCS)]) + H*B*lam)
+	
+	# set constraints
+	for p in range(NPROCS):
+		for i in range(NSTATES):
+			for j in range(NACTIONS):
+				for h in range(H):
+					m.addConstr( L[p,i,h] >= R[p,i] - lam*C[j] + gamma*(L[p,:,h+1]).dot(P[p,i,j]))
+
+	# Optimize model
+	m.optimize()
+
+	L_vals = np.zeros((NPROCS,NSTATES,H))
+	lam_solved_value = 0
+
+	for v in m.getVars():
+		if 'lambda' in v.varName:
+			lam_solved_value = v.x
+		
+		if 'L' in v.varName:
+			i = int(v.varName.split('_')[1])
+			j = int(v.varName.split('_')[2])
+			t = int(v.varName.split('_')[3])
+
+			L_vals[i,j,t] = v.x
+
+	return L_vals, lam_solved_value
+
 
 def hawkins_fixed_bt(H, T, P, R, C, B, bvals, start_state, lambda_lim=None, gamma=0.95):
 	#bts: list of length T
@@ -205,138 +262,6 @@ def hawkins_fixed_bt(H, T, P, R, C, B, bvals, start_state, lambda_lim=None, gamm
 
 	return L_vals, lambda_vals, b_vals, m
 
-def hawkins_flexible(H, T, P, R, C, B, start_state, lambda_lim=None, gamma=0.95):
-
-	# B is the one step budget
-	# T timesteps to respect budget contraing (TB)
-	# H time horizon
-	# 1 constraint (sum_0^T b_t = T*B, b_t for 0<t<T are variable) (second option: H/T constraints, all b_t 0<t<H are variable )
-	# b_t = b for T<t<H
-
-
-	start = time.time()
-
-	NPROCS = P.shape[0]
-	NSTATES = P.shape[1]
-	NACTIONS = P.shape[2]
-
-	# Create a new model
-	m = Model("LP for Hawkins Lagrangian relaxation with flexible budget")
-	m.setParam('OutputFlag', False )
-
-	L = np.zeros((NPROCS,NSTATES, H+1),dtype=object)
-	
-	mu = np.zeros((NPROCS,NSTATES),dtype=object)
-	for i in range(NPROCS):
-		mu[i, int(start_state[i])] = 1
-
-	c = C
-
-	# Create variables
-	lb = 0
-	ub = GRB.INFINITY
-	if lambda_lim is not None:
-		ub = lambda_lim
-
-	lamtime = np.zeros(H,dtype=object)
-	for h in range(H):
-		lamtime[h] = m.addVar(vtype=GRB.CONTINUOUS, name='lambda_%s'%(h), lb=0)
-
-	b = np.zeros(H,dtype=object)
-	for t in range(T):
-		b[t] = m.addVar(vtype=GRB.CONTINUOUS, name='bt_%s'%(t), lb=0)
-	if H>T:
-		for t in range(T,H):
-			b[t] = B
-
-	lam_x_b = np.zeros(T,dtype=object)
-	for t in range(T):
-		lam_x_b[t] = m.addVar(vtype=GRB.CONTINUOUS, name='lam_x_b_%s'%(t), lb=0)
-
-	z = m.addVar(vtype=GRB.CONTINUOUS, name='min_obj')
-
-	for p in range(NPROCS):
-		for i in range(NSTATES):
-			for h in range(H):
-				L[p,i,h] = m.addVar(vtype=GRB.CONTINUOUS, name='L_%s_%s_%s'%(p,i,h))
-
-
-	# print('Variables added in %ss:'%(time.time() - start))
-	start = time.time()
-
-
-	m.modelSense=GRB.MINIMIZE
-
-	m.setObjective(z)
-	m.params.NonConvex = 2
-
-	fixedb = [1,1]
-	for t in range(T):
-		m.addConstr(b[t] == fixedb[t]) #set fixed value for b
-
-	m.addConstr(z >= sum([L[i,:,0].dot(mu[i]) for i in range(NPROCS)]) + b.dot(lamtime))
-
-#	for bvals in [[1,1],[2,0],[0,2]]:
-#		bvals = np.array(bvals)
-#		m.addConstr(z >= sum([L[i,:,0].dot(mu[i]) for i in range(NPROCS)]) + bvals.dot(lamtime))
-	#m.addConstr(sum([L[i,:,0].dot(mu[i]) for i in range(NPROCS)]) + b.dot(lamtime),0,1)
-	
-
-	# set lambda*b variable as constraint
-	#for t in range(T):
-	#	m.addConstr(lam_b[t] == b[t]*lamtime[t])
-
-	# constraint to capture minimization over lambdas
-	#m.addConstr(z >= sum([L[i,:,0].dot(mu[i]) for i in range(NPROCS)]) + b.dot(lamtime))
-
-	# set constraints
-	for p in range(NPROCS):
-		for i in range(NSTATES):
-			for j in range(NACTIONS):
-				for h in range(H):
-					m.addConstr( L[p,i,h] >= - lamtime[h]*c[j] + gamma*(L[p,:,h+1]+R[p,:]).dot(P[p,i,j]) )
-
-	# set budget constraint
-	m.addConstr(sum(b[:T]) == T*B)
-
-	# print('Constraints added in %ss:'%(time.time() - start))
-	start = time.time()
-
-	# Optimize model
-
-	m.optimize()
-	# m.printStats()
-
-	# print('Model optimized in %ss:'%(time.time() - start))
-	start = time.time()
-
-
-	L_vals = np.zeros((NPROCS,NSTATES,H))
-	b_vals = np.zeros(T)
-	lambda_vals = np.zeros(H)
-
-	for v in m.getVars():
-		if 'lambda' in v.varName:
-			i = int(v.varName.split('_')[1])
-			lambda_vals[i] = v.x
-		
-		if 'bt' in v.varName:
-			i = int(v.varName.split('_')[1])
-			b_vals[i] = v.x
-
-
-		if 'L' in v.varName:
-			i = int(v.varName.split('_')[1])
-			j = int(v.varName.split('_')[2])
-			t = int(v.varName.split('_')[3])
-
-			L_vals[i,j,t] = v.x
-
-	start = time.time()
-
-	return L_vals, lambda_vals, b_vals, m
-
-
 # https://dspace.mit.edu/handle/1721.1/29599
 def hawkins_set_lambda(T, R, C, B, start_state, lambda_val=None, lambda_lim=None, gamma=0.95):
 
@@ -434,10 +359,6 @@ def hawkins_set_lambda(T, R, C, B, start_state, lambda_val=None, lambda_lim=None
 	start = time.time()
 
 	return L_vals, index_solved_value
-
-
-
-
 
 
 # Transition matrix, reward vector, action cost vector
