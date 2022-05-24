@@ -115,7 +115,7 @@ for t in range(HORIZON):
     tracemalloc.start()
     for i in range(T):
         size_close = T - i
-        horizon_left = np.floor((H-t*T-i)/size_close)
+        horizon_left = int(np.floor((H-t*T-i)/size_close))
         budget = B*T - used # if resources not shared in future budget = B*size_close
         if budget > 0:
             actions = compressing_methods.hawkins_window(horizon_left,size_close, N, P, R, C, budget, envs[algo].current_state, gamma)
