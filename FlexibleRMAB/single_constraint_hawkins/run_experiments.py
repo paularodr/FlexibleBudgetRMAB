@@ -130,48 +130,48 @@ for t in range(HORIZON):
     results[algo]['memory'] += tracemalloc.get_traced_memory()[1]
     tracemalloc.stop()
 
-    # #Minmax Chmbolle-Pock
-    # algo = 'chambolle-pock-50'
-    # used = 0
-    # for i in range(T):
-    #     size_close = T - i
-    #     budget = B*T - used
-    #     time_horizon = H - t -i
-    #     K = minmax.createK(size_close,time_horizon)
-    #     if budget > 0:
-    #         x = np.zeros(time_horizon+1)
-    #         y = np.ones(size_close)
-    #         # CHANGE H AND T GIVEN TO CHAMBOLLE POCK
-    #         actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, R, C, B, budget,  50, tolerance, sample_size)
-    #     else:
-    #         actions = np.array([0]*N)
-    #     used += actions.sum()
-    #     np.random.set_state(random_states[i])
-    #     current_state, reward = envs[algo].onestep(actions)
-    #     results = append_results(algo, actions, current_state, reward)
-    # runtime = (time.time()-start)
-    # results[algo]['runtime'] += runtime
+    #Minmax Chmbolle-Pock
+    algo = 'chambolle-pock-50'
+    used = 0
+    for i in range(T):
+        size_close = T - i
+        budget = B*T - used
+        time_horizon = H - t -i
+        K = minmax.createK(size_close,time_horizon)
+        if budget > 0:
+            x = np.zeros(time_horizon+1)
+            y = np.ones(size_close)
+            # CHANGE H AND T GIVEN TO CHAMBOLLE POCK
+            actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, R, C, B, budget,  50, tolerance, sample_size)
+        else:
+            actions = np.array([0]*N)
+        used += actions.sum()
+        np.random.set_state(random_states[i])
+        current_state, reward = envs[algo].onestep(actions)
+        results = append_results(algo, actions, current_state, reward)
+    runtime = (time.time()-start)
+    results[algo]['runtime'] += runtime
 
-    # #Minmax Chmbolle-Pock
-    # algo = 'chambolle-pock-100'
-    # used = 0
-    # for i in range(T):
-    #     size_close = T - i
-    #     budget = B*T - used
-    #     time_horizon = H - t -i
-    #     K = minmax.createK(size_close,time_horizon)
-    #     if budget > 0:
-    #         x = np.zeros(time_horizon+1)
-    #         y = np.ones(size_close)
-    #         actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, R, C, B, budget,  100, tolerance, sample_size)
-    #     else:
-    #         actions = np.array([0]*N)
-    #     used += actions.sum()
-    #     np.random.set_state(random_states[i])
-    #     current_state, reward = envs[algo].onestep(actions)
-    #     results = append_results(algo, actions, current_state, reward)
-    # runtime = (time.time()-start)
-    # results[algo]['runtime'] += runtime
+    #Minmax Chmbolle-Pock
+    algo = 'chambolle-pock-100'
+    used = 0
+    for i in range(T):
+        size_close = T - i
+        budget = B*T - used
+        time_horizon = H - t -i
+        K = minmax.createK(size_close,time_horizon)
+        if budget > 0:
+            x = np.zeros(time_horizon+1)
+            y = np.ones(size_close)
+            actions, l, budgets, Q_vals = minmax.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, R, C, B, budget,  100, tolerance, sample_size)
+        else:
+            actions = np.array([0]*N)
+        used += actions.sum()
+        np.random.set_state(random_states[i])
+        current_state, reward = envs[algo].onestep(actions)
+        results = append_results(algo, actions, current_state, reward)
+    runtime = (time.time()-start)
+    results[algo]['runtime'] += runtime
 
     #Minmax Chmbolle-Pock
     algo = 'chambolle-pock-200'
