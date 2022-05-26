@@ -32,7 +32,6 @@ T = args.F #flexible time horizon
 H = args.H #total time horizon
 N = args.N #arms
 S = args.S #states
-M = 1 #fraction of risk prone arms
 B = 1.0 #one step budget
 C = [0,1]
 
@@ -61,7 +60,7 @@ for algo in algos:
     if domain == 'immediateRecovery':
         envs[algo] = immediateRecovery(N,B,S)
     if domain == 'twoStateProcess':
-        envs[algo] = twoStateProcess(N,B,M)
+        envs[algo] = twoStateProcess(N,B)
 
 for t in range(HORIZON):
     print(f'timestep: {t}/{HORIZON}')

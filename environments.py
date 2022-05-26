@@ -65,12 +65,11 @@ class immediateRecovery(gym.Env):
         return states, rewards
 
 class twoStateProcess(gym.Env):
-    def __init__(self, N, B, M):
+    def __init__(self, N, B):
         
         self.N = N
         self.B = B
         self.S = 2
-        self.M = M
         self.current_state = np.array([1]*N)
         self.T, self.R, self.C = self.get_experiment()
     
@@ -94,24 +93,9 @@ class twoStateProcess(gym.Env):
             [0, 1]
             ])
 
-        #not act transition probability. SELF CORRECTING
-        Q0 = np.array([
-            [0.1, 0.9],
-            [0.3, 0.7]
-            ])
-
-        #act transition probability. SELF CORRECTING
-        Q1 = np.array([
-            [0, 1],
-            [0, 1]
-            ])
-
         P = []
         for i in range(self.N):
-            if i <= np.round(self.N*self.M):
-                Pi = [P0,P1]
-            else:
-                Pi = [Q0,Q1]
+            Pi = [P0,P1]
             Pi = np.swapaxes(Pi, 0, 1)
             P.append(Pi)
 
