@@ -27,5 +27,6 @@ We design three three synthetic domains to show the benefits of allowing for bud
 
 The main file to run the algorithms and baselines on each experimental domain with the hyperparameters indicated in the Appendix is `run_experiments.py`. Details on the parameters can be found by running `python3 run_experiments.py --help`
 
-For example, to run all algorithms on the drop out state domain with *F=2* and *H=30* as in Figure 2 of the paper run:
-`python3 run_experiments.py --seed seed --domain dropOutState --F 2 --H 30 --N 10 --S 3 --niters 50 100 200` for `seed` from 0 to 29.
+For example, to run all algorithms on the drop out state domain with *F=2* and *H=30* as in Figure 2 of the paper run:\
+`python3 run_experiments.py --seed seed --domain dropOutState --F 2 --H 30 --N 10 --S 3 --niters 50 100 200`\
+for `seed` from 0 to 29.
