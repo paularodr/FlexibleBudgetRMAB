@@ -36,8 +36,8 @@ class immediateRecovery(gym.Env):
                     P[i,s,1,self.S - 1] = 1
 
                 if s != 0:
-                    P[i,s,0,s-1] = 0.6
-                    P[i,s,0,s] = 0.4
+                    P[i,s,0,s-1] = np.random.randint(50,70)/100
+                    P[i,s,0,s] = 1-P[i,s,0,s-1]
                 else:
                     P[i,s,0,s] = 1
                     P[i,s,1,s] = 1
@@ -81,9 +81,11 @@ class twoStateProcess(gym.Env):
 
 
         #not act transition probability. RISK
+        p1 = np.random.randint(85,95)/100
+        p2 = np.random.randint(35,50)/100
         P0 = np.array([
-            [0.9, 0.1],
-            [0.3, 0.7]
+            [p1, 1-p1],
+            [p2, 1-p2]
             ])
 
         #act transition probability. RISK
