@@ -8,7 +8,10 @@ We design three three synthetic domains to show the benefits of allowing for bud
 - **Immediate recovery**: Models maintenance-style RMAB problems. Each arm corresponds to one item that gradually decays over time, and intervention is guarantee to restore that item to peak condition
 - **Two-state process**: Models approaches in health intervention planning such as maternal health care. This domain models an entity with two states, a *good* and a *bad* state, with reward 1 for each arm in the good state and 0 for the bad state.
 
-The main file to run the algorithms and baselines on each experimental domain is `run_experiments.py`. Details on the parameters can be found by running `python3 run_experiments.py --help`
+The main file to run the algorithms and baselines on each experimental domain with the hyperparameters indicated in the Appendix is `run_experiments.py`. Details on the parameters can be found by running `python3 run_experiments.py --help`
+
+For example, to run all algorithms on the drop out state domain with *F=2* and *H=30* as in Figure 2 of the paper run:
+`python3 run_experiments.py --seed seed --domain dropOutState --F 2 --H 30 --N 10 --S 3 --niters 50 100 200`
 
 #### To install follow these directions (generic version):
 
