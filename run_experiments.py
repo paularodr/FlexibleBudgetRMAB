@@ -37,7 +37,7 @@ C = [0,1]
 
 
 # chambolle-pock algorithms
-gamma = 0.95
+gamma = 1
 tau = 0.1
 sigma = 0.1
 x = np.zeros(H+1) # initial lagrange multipliers
@@ -67,15 +67,15 @@ for t in range(HORIZON):
 
     # T steps of Hawkins (fixed per round  budget)
     algo = 'hawkins'
-    results, envs, random_states = planning.plan_hawkins_single(T,N,C,B,envs,algo,gamma,results)
+    results, envs, random_states = planning.plan_hawkins_single(H,T,N,C,B,envs,algo,gamma,results)
 
     # Compress with static window
     algo = 'compress_static'
-    results, envs = planning.plan_hawkins_fixed(T,B,N, C, envs, algo, gamma, random_states,results)
+    results, envs = planning.plan_hawkins_fixed(t,H,T,B,N, C, envs, algo, gamma, random_states,results)
 
     # Compress with closing window
     algo = 'compress_closing'
-    results, envs = planning.plan_hawkins_closing(T,B,N,C,envs,algo,gamma,random_states,results)
+    results, envs = planning.plan_hawkins_closing(t,H,T,B,N,C,envs,algo,gamma,random_states,results)
 
     #PDGS: Minmax using Chmbolle-Pock
     for i, algo in enumerate(pdgs_algos):

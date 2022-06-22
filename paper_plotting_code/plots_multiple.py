@@ -9,11 +9,12 @@ rc('font',**{'family':'serif','serif':['Times']})
 rc('text', usetex=True)
 
 
-algos = ['hawkins_single','hawkins_fixed','hawkins_closing','chambolle-pock-50','chambolle-pock-100', 'chambolle-pock-200']
+niters = [50,100,200]
+pdgs_algos = [f'PDGS-{i}' for i in niters]
+algos = ['hawkins', 'compress_static', 'compress_closing']+pdgs_algos
 names_algos = ['Hawkins [2003]', 'Compress (static)', 'Compress (closing)','PDGS-50','PDGS-100','PDGS-200']
 
 def read_data(domain, T, H, N, S=5, B=1):
-
 
     if domain == 'dropOutState':
         experiments = [f'T_{T[i]}_H_{H[i]}_N_{N}_B_{B}' for i in range(len(T))]

@@ -126,7 +126,8 @@ def hawkins_finite(H, P, R, C, B, start_state, lambda_lim=None, gamma=1):
 
 			L_vals[i,j,t] = v.x
 
-	return L_vals, lam_solved_value
+	L_vals_0 = L_vals[:,:,0]
+	return L_vals_0, lam_solved_value
 
 
 def hawkins_fixed_bt(H, T, P, R, C, B, bvals, start_state, lambda_lim=None, gamma=0.95):

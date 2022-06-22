@@ -29,27 +29,27 @@ def compress(P, C, size):
 
 
 
-def hawkins_window(size, N, P, R, C, B, current_state, gamma=0.95):
+def hawkins_window(horizon, window, N, P, R, C, B, current_state, gamma=0.95):
     # B: per step budget
     # P: one step transition probabilities
     # return: array for size (size)xN with binary actions to perform on each arm at each step of the window
     
     # Calculate P_size: transition probabilities for steps of size 'size'
-    if size >1:
-        Psize, costs, multi_actions = compress(P, C, size)
+    if window >1:
+        Psize, costs, multi_actions = compress(P, C, window)
     else:
         Psize = P
         costs = C
         multi_actions = [0,1]
 
     # multi-actions to take in window of size 'size' using Hawkins
-    actions_window, L, Q, lambda_val, Q_vals_per_state = hawkins_actions.get_hawkins_actions(N, Psize, R, costs, B, current_state, gamma)
+    actions_window, L, Q, lambda_val, Q_vals_per_state = hawkins_actions.get_hawkins_actions(horizon, N, Psize, R, costs, B, current_state, gamma)
 
     # from multi-action to bianry actions at each step
-    if size >1:
-        actions_binary = [[]]*size
+    if window >1:
+        actions_binary = [[]]*window
         for action_i in actions_window:
-            for t in range(size):
+            for t in range(window):
                 actions_binary[t] = actions_binary[t] + [multi_actions[action_i][t]]
         actions_binary = np.array(actions_binary)
     else:
