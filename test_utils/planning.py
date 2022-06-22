@@ -73,14 +73,14 @@ def plan_hawkins_fixed(T,B,N, C, envs, algo, gamma, random_states,results):
     tracemalloc.stop()
     return results, envs
 
-def plan_hawkins_single(T,N,C,B,envs,algo,gamma,results):
+def plan_hawkins_single(H,T,N,C,B,envs,algo,gamma,results):
     random_states = []
     P = envs[algo].T
     R = envs[algo].R
     start = time.time()
     tracemalloc.start()
     for k in range(T):
-            output = hawkins_actions.get_hawkins_actions(N, P, R, C, B, envs[algo].current_state, gamma)
+            output = hawkins_actions.get_hawkins_actions(H, N, P, R, C, B, envs[algo].current_state, gamma)
             actions = output[0]
             random_states.append(np.random.get_state())
             np.random.set_state(random_states[k])

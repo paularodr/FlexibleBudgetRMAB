@@ -2,7 +2,7 @@ import numpy as np
 from . import hawkins_methods
 
 
-def get_hawkins_actions(N, P, R, C, B, current_state, gamma):
+def get_hawkins_actions(H, N, P, R, C, B, current_state, gamma, finite_horizon=True):
     actions = np.zeros(N)
 
     # N x A x S matrix
@@ -10,7 +10,10 @@ def get_hawkins_actions(N, P, R, C, B, current_state, gamma):
 
     current_state = current_state.reshape(-1).astype(int)
 
-    L_vals, lambda_val = hawkins_methods.hawkins(P, R, C, B, current_state, gamma=gamma)
+    if finite_horizon:
+        L_vals, lambda_val = hawkins_methods.hawkins_finite(H, P, R, C, B, current_state, gamma=gamma)
+    else:
+        L_vals, lambda_val = hawkins_methods.hawkins(P, R, C, B, current_state, gamma=gamma)
 
     for i in range(N):
         for a in range(P.shape[2]):
