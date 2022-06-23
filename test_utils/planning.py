@@ -97,14 +97,14 @@ def plan_hawkins_single(H,T,N,C,B,envs,algo,gamma,results,finite_horizon):
     tracemalloc.stop()
     return results, envs, random_states
 
-def plan_random(N,B,envs,algo,result,random_states,seed):
+def plan_random(T,N,B,envs,algo,results,random_states,seed):
     P = envs[algo].T
     R = envs[algo].R
     start = time.time()
     tracemalloc.start()
     random.seed(seed)
     for k in range(T):
-        actions = np.isin(list(range(N)),random.sample(list(range(N)),B))*1
+        actions = np.isin(list(range(N)),random.sample(list(range(N)),int(B)))*1
         np.random.set_state(random_states[k])
         current_state, reward = envs[algo].onestep(actions)
         results = append_results(results, algo, actions, current_state, reward)

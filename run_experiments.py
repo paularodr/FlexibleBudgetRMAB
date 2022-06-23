@@ -73,7 +73,7 @@ for t in range(HORIZON):
 
     # randomly choose B at each round
     algo = 'random'
-    results, envs = plan_random(N,B,envs,algo,result,random_states,seed)
+    results, envs = planning.plan_random(T,N,B,envs,algo,results,random_states,seed)
 
     # Compress with static window
     algo = 'compress_static'
