@@ -36,7 +36,7 @@ def plan_chambolle_pock(T,N,B,H,C,t,tau,sigma,envs,algo,niter,tolerance, sample_
     results[algo]['runtime'] += runtime
     return results, envs
 
-def plan_hawkins_closing(step,H,T, B, N, C, envs, algo, gamma, random_states,results):
+def plan_hawkins_closing(step,H,T, B, N, C, envs, algo, gamma, random_states,results,finite_horizon):
     P = envs[algo].T
     R = envs[algo].R
     used=0
@@ -47,7 +47,7 @@ def plan_hawkins_closing(step,H,T, B, N, C, envs, algo, gamma, random_states,res
         horizon = math.floor((H-step*T-i)/size_close)
         budget = B*T - used 
         if budget > 0:
-            actions = compressing_methods.hawkins_window(horizon,size_close, N, P, R, C, budget, envs[algo].current_state, gamma)
+            actions = compressing_methods.hawkins_window(horizon,size_close, N, P, R, C, budget, envs[algo].current_state, gamma,finite_horizon)
         else:
             actions = [np.array([0]*N)]
         used += actions[0].sum()
@@ -60,14 +60,14 @@ def plan_hawkins_closing(step,H,T, B, N, C, envs, algo, gamma, random_states,res
     tracemalloc.stop()
     return results, envs
 
-def plan_hawkins_fixed(step,H,T,B,N, C, envs, algo, gamma, random_states,results):
+def plan_hawkins_fixed(step,H,T,B,N, C, envs, algo, gamma, random_states,results,finite_horizon):
     horizon = math.floor(H/T) - step
 
     P = envs[algo].T
     R = envs[algo].R
     start = time.time()
     tracemalloc.start()
-    actions = compressing_methods.hawkins_window(horizon, T, N, P, R, C, T*B, envs[algo].current_state, gamma)
+    actions = compressing_methods.hawkins_window(horizon, T, N, P, R, C, T*B, envs[algo].current_state, gamma,finite_horizon)
     states, rewards = envs[algo].multiple_steps(T, actions, random_states)
     for i in range(T):
         results = append_results(results, algo, actions[i], states[i], rewards[i])
@@ -77,14 +77,14 @@ def plan_hawkins_fixed(step,H,T,B,N, C, envs, algo, gamma, random_states,results
     tracemalloc.stop()
     return results, envs
 
-def plan_hawkins_single(H,T,N,C,B,envs,algo,gamma,results):
+def plan_hawkins_single(H,T,N,C,B,envs,algo,gamma,results,finite_horizon):
     random_states = []
     P = envs[algo].T
     R = envs[algo].R
     start = time.time()
     tracemalloc.start()
     for k in range(T):
-            output = hawkins_actions.get_hawkins_actions(H, N, P, R, C, B, envs[algo].current_state, gamma)
+            output = hawkins_actions.get_hawkins_actions(H, N, P, R, C, B, envs[algo].current_state, gamma,finite_horizon)
             actions = output[0]
             random_states.append(np.random.get_state())
             np.random.set_state(random_states[k])

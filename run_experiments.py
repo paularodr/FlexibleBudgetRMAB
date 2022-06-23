@@ -19,6 +19,7 @@ parser.add_argument('--N', metavar='N', type=int,
 parser.add_argument('--S', metavar='S', type=int,
                     help='Number of states', default=2)
 parser.add_argument('--niters', metavar='niters',nargs='*', type=int, default=[50,100,200])
+parser.add_argument('--finite', metavar='finite', type=bool, choices=[False,True])
 args = parser.parse_args()
  
 niters = args.niters
@@ -26,6 +27,7 @@ pdgs_algos = [f'PDGS-{i}' for i in niters]
 algos = ['hawkins', 'compress_static', 'compress_closing']+pdgs_algos
 
 # Parameters
+finite_horizon = args.finite
 seed = args.seed
 domain = args.domain
 T = args.F #flexible time horizon
@@ -67,15 +69,15 @@ for t in range(HORIZON):
 
     # T steps of Hawkins (fixed per round  budget)
     algo = 'hawkins'
-    results, envs, random_states = planning.plan_hawkins_single(H,T,N,C,B,envs,algo,gamma,results)
+    results, envs, random_states = planning.plan_hawkins_single(H,T,N,C,B,envs,algo,gamma,results,finite_horizon)
 
     # Compress with static window
     algo = 'compress_static'
-    results, envs = planning.plan_hawkins_fixed(t,H,T,B,N, C, envs, algo, gamma, random_states,results)
+    results, envs = planning.plan_hawkins_fixed(t,H,T,B,N, C, envs, algo, gamma, random_states,results,finite_horizon)
 
     # Compress with closing window
     algo = 'compress_closing'
-    results, envs = planning.plan_hawkins_closing(t,H,T,B,N,C,envs,algo,gamma,random_states,results)
+    results, envs = planning.plan_hawkins_closing(t,H,T,B,N,C,envs,algo,gamma,random_states,results,finite_horizon)
 
     #PDGS: Minmax using Chmbolle-Pock
     for i, algo in enumerate(pdgs_algos):
