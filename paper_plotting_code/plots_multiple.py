@@ -18,9 +18,9 @@ def read_data(domain, T, H, N, S=5, B=1):
 
     if domain == 'dropOutState':
         experiments = [f'T_{T[i]}_H_{H[i]}_N_{N}_B_{B}' for i in range(len(T))]
-    if domain == 'birthDeathProcess':
+    if domain == 'immediateRecovery':
         experiments = [f'T_{T[i]}_H_{H[i]}_N_{N}_S_{S}_B_{B}' for i in range(len(T))]
-    if domain == 'riskProneArms':
+    if domain == 'twoStateProcess':
         experiments = [f'T_{T[i]}_H_{H[i]}_N_{N}_B_{B}' for i in range(len(T))]
 
 
@@ -95,8 +95,8 @@ Hs = [[30,30,30],[10,10,10],[6,6,6]]
 sub = ['a','b','c']
 names = [f'Dropout state', 'Immediate recovery', 'Two-state process']
 rewards_ds, resources_ds, flexible_ds, runtimes_ds = read_data('dropOutState', Ts[0], H=Hs[0], N=10)
-rewards_bd, resources_bd, flexible_bd, runtimes_bd = read_data('birthDeathProcess', Ts[1], H=Hs[1], N=10, S=S)
-rewards_ts, resources_ts, flexible_ts, runtimes_ts = read_data('riskProneArms', Ts[2], H=Hs[2], N=10)
+rewards_bd, resources_bd, flexible_bd, runtimes_bd = read_data('immediateRecovery', Ts[1], H=Hs[1], N=10, S=S)
+rewards_ts, resources_ts, flexible_ts, runtimes_ts = read_data('twoStateProcess', Ts[2], H=Hs[2], N=10)
 
 #rewards
 mins = [50,0,22]
