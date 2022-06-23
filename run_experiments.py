@@ -24,7 +24,7 @@ args = parser.parse_args()
  
 niters = args.niters
 pdgs_algos = [f'PDGS-{i}' for i in niters]
-algos = ['hawkins', 'compress_static', 'compress_closing']+pdgs_algos
+algos = ['random', 'hawkins', 'compress_static', 'compress_closing']+pdgs_algos
 
 # Parameters
 finite_horizon = args.finite
@@ -70,6 +70,10 @@ for t in range(HORIZON):
     # T steps of Hawkins (fixed per round  budget)
     algo = 'hawkins'
     results, envs, random_states = planning.plan_hawkins_single(H,T,N,C,B,envs,algo,gamma,results,finite_horizon)
+
+    # randomly choose B at each round
+    algo = 'random'
+    results, envs = plan_random(N,B,envs,algo,result,random_states,seed)
 
     # Compress with static window
     algo = 'compress_static'

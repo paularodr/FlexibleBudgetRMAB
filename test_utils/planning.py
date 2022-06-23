@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import math
+import random
 import tracemalloc
 from algos import compressing_methods, minmax_methods, hawkins_actions
 
@@ -95,3 +96,21 @@ def plan_hawkins_single(H,T,N,C,B,envs,algo,gamma,results,finite_horizon):
     results[algo]['memory'] += tracemalloc.get_traced_memory()[1]
     tracemalloc.stop()
     return results, envs, random_states
+
+def plan_random(N,B,envs,algo,result,random_states,seed):
+    P = envs[algo].T
+    R = envs[algo].R
+    start = time.time()
+    tracemalloc.start()
+    random.seed(seed)
+    for k in range(T):
+        actions = np.isin(list(range(N)),random.sample(list(range(N)),B))*1
+        np.random.set_state(random_states[k])
+        current_state, reward = envs[algo].onestep(actions)
+        results = append_results(results, algo, actions, current_state, reward)
+        runtime = (time.time()-start)
+    results[algo]['runtime'] += runtime
+    results[algo]['memory'] += tracemalloc.get_traced_memory()[1]
+    tracemalloc.stop()
+    return results, envs
+
