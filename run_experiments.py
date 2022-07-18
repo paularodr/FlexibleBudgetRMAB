@@ -96,9 +96,9 @@ for k in ['actions','states','rewards']:
 
 #save results
 if domain != 'immediateRecovery':
-    experiment = f'T_{T}_H_{H}_N_{N}_B_{int(B)}'
+    experiment = f'F_{T}_H_{H}_N_{N}_B_{int(B)}'
 else:
-    experiment = f'T_{T}_H_{H}_N_{N}_S_{S}_B_{int(B)}'
+    experiment = f'F_{T}_H_{H}_N_{N}_S_{S}_B_{int(B)}'
 dir_path = f'results/{domain}/{experiment}'
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
