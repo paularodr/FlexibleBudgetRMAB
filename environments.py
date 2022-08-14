@@ -26,6 +26,7 @@ class immediateRecovery(gym.Env):
             R = np.array([neg+pos for _ in range(self.N)])
         else:
             R = np.array([neg+[0]+pos for _ in range(self.N)])
+        #R = np.array([list(range(self.S)) for _ in range(self.N)])
         P = np.zeros((self.N,self.S,2,self.S))
 
         for i in range(self.N):
@@ -82,6 +83,8 @@ class twoStateProcess(gym.Env):
         #not act transition probability. RISK
         p1 = np.random.randint(85,95)/100
         p2 = np.random.randint(35,50)/100
+        # p1 = np.random.randint(50,100)/100
+        # p2 = np.random.randint(35,50)/100
         P0 = np.array([
             [p1, 1-p1],
             [p2, 1-p2]

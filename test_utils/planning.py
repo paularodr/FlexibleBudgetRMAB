@@ -1,3 +1,4 @@
+import pdb
 import numpy as np
 import time
 import math
@@ -21,20 +22,29 @@ def plan_chambolle_pock(T,N,B,H,C,t,tau,sigma,envs,algo,niter,tolerance, sample_
     for i in range(T):
         size_close = T - i
         budget = B*T - used
-        time_horizon = H - t -i
+        time_horizon = H - T*t -i
         K = minmax_methods.createK(size_close,time_horizon)
         if budget > 0:
             x = np.zeros(time_horizon+1)
             y = np.ones(size_close)
-            actions, l, budgets, Q_vals = minmax_methods.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, R, C, B, budget,  niter, tolerance, sample_size)
+            minmaxresults, runtimes, optgap = minmax_methods.chambolle_pock_actions(tau, sigma, K, x, y, envs[algo].current_state, P, R, C, B, budget,  niter, tolerance, sample_size)
+            actions = minmaxresults[0]
+            l = minmaxresults[1]
+            budgets = minmaxresults[2]
+            Q_vals = minmaxresults[3]
         else:
             actions = np.array([0]*N)
         used += actions.sum()
         np.random.set_state(random_states[i])
         current_state, reward = envs[algo].onestep(actions)
         results = append_results(results, algo, actions, current_state, reward)
+        results[algo]['runtimes_lp'] = results[algo]['runtimes_lp'] + [runtimes[0]]
+        results[algo]['runtimes_sample'] = results[algo]['runtimes_sample'] + [runtimes[1]]
+        results[algo]['optgap'] = results[algo]['optgap'] + [optgap]
+
     runtime = (time.time()-start)
     results[algo]['runtime'] += runtime
+
     return results, envs
 
 def plan_hawkins_closing(step,H,T, B, N, C, envs, algo, gamma, random_states,results):
@@ -78,7 +88,7 @@ def plan_hawkins_fixed(step,H,T,B,N, C, envs, algo, gamma, random_states,results
     tracemalloc.stop()
     return results, envs
 
-def plan_hawkins_single(H,T,N,C,B,envs,algo,gamma,results,finite_horizon):
+def plan_hawkins_single(H,T,N,C,B,envs,algo,gamma,results):
     random_states = []
     P = envs[algo].T
     R = envs[algo].R
