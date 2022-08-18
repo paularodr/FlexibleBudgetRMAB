@@ -202,21 +202,15 @@ def LP_fixed_lagrange(H, T, P, R, C, B, lagrange_vals, start_state, gamma=0.95):
     for p in range(N):
         for i in range(S):
             for h in range(H):
-                L[p,i,h] = m.addVar(vtype=GRB.CONTINUOUS, name='L_%s_%s_%s'%(p,i,h))
+                L[p,i,h] = np.max([R[p,i] - lamtime[h]*C[j] + gamma*(L[p,:,h+1]).dot(P[p,i,j]) for j in range(A)])
+                
 
     # model objective
     m.modelSense=GRB.MAXIMIZE
     m.setObjective(sum([L[i,:,0].dot(mu[i]) for i in range(N)]) + b.dot(lamtime) + lagrange_mu*(b.sum()-T*B))
 
-    # set constraints
-    for p in range(N):
-        for i in range(S):
-            for j in range(A):
-                for h in range(H):
-                    m.addConstr( L[p,i,h] >= R[p,i] - lamtime[h]*C[j] + gamma*(L[p,:,h+1]).dot(P[p,i,j]))
-
     # set budget constraint
-    #m.addConstr(sum(b[:T]) == T*B)					
+    m.addConstr(sum(b[:T]) == T*B)
 
 	# Optimize model
     m.optimize()
@@ -272,7 +266,7 @@ def chambolle_pock(tau, sigma, K, x, y, start_state, P, R, C, B, Bavai,  n_iter=
         runtimes_sample.append(runtime_sample)
         gradients = -1 * expected_cost
         if T<H:
-            gradients[T+1:] += B
+            gradients[T:] += B
         gradients = np.append(gradients,Bavai)
         diff_x = -1*tau*(K.T.dot(y)+gradients)
         xdiffs.append(np.abs(diff_x))
@@ -284,12 +278,11 @@ def chambolle_pock(tau, sigma, K, x, y, start_state, P, R, C, B, Bavai,  n_iter=
             break
 
         #compute optimality gap
-        b = np.array(list(y)+[B]*(H-len(y)))
-#        try:
-        pdb.set_trace()
-        max_lambda = LP_fixed_b(H, T, P, R, C, B, b, start_state, lambda_lim=None, gamma=gamma)
-        min_budget = LP_fixed_lagrange(H, T, P, R, C, B, x, start_state, gamma=gamma)
-        optgap.append(max_lambda[1] - min_budget[1])
+        # b = np.array(list(y)+[B]*(H-len(y)))
+        # try:
+        #     max_lambda = LP_fixed_b(H, T, P, R, C, B, b, start_state, lambda_lim=None, gamma=gamma)
+        #     min_budget = LP_fixed_lagrange(H, T, P, R, C, B, x, start_state, gamma=gamma)
+        #     optgap.append(max_lambda[1] - min_budget[1])
         # except:
         #     optgap.append(np.nan)
 

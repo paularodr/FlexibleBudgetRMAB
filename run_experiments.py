@@ -49,7 +49,7 @@ sigma = 0.1
 x = np.zeros(H+1) # initial lagrange multipliers
 y = np.ones(F) # initial budget variables
 tolerance=1e-06
-sample_size=5*N
+sample_size=10*N
 
 HORIZON = int(H/F) #T steps
 
