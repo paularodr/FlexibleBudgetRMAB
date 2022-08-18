@@ -1,4 +1,3 @@
-import pdb
 import time
 import test_utils.evaluation as evaluation
 import numpy as np
@@ -243,7 +242,6 @@ def chambolle_pock(tau, sigma, K, x, y, start_state, P, R, C, B, Bavai,  n_iter=
     runtimes_lp = []
     runtimes_sample = []
     optgap = []
-    #obj_diffs = []
     for _ in tqdm(range(n_iter)):
         diff_y = sigma*K.dot(xbar)
         ydiffs.append(np.abs(diff_y))
@@ -278,12 +276,11 @@ def chambolle_pock(tau, sigma, K, x, y, start_state, P, R, C, B, Bavai,  n_iter=
             break
 
         #compute optimality gap
-        b = np.array(list(y)+[B]*(H-len(y)))
-#        try:
-#        pdb.set_trace()
-        max_lambda = LP_fixed_b(H, T, P, R, C, B, b, start_state, lambda_lim=None, gamma=gamma)
-        min_budget = LP_fixed_lagrange(H, T, P, R, C, B, x, start_state, gamma=gamma)
-        optgap.append(max_lambda[1] - min_budget[1])
+        # b = np.array(list(y)+[B]*(H-len(y)))
+        # try:
+        #     max_lambda = LP_fixed_b(H, T, P, R, C, B, b, start_state, lambda_lim=None, gamma=gamma)
+        #     min_budget = LP_fixed_lagrange(H, T, P, R, C, B, x, start_state, gamma=gamma)
+        #     optgap.append(max_lambda[1] - min_budget[1])
         # except:
         #     optgap.append(np.nan)
 
